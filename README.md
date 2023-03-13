@@ -1,4 +1,9 @@
-# Gailit-baka-2021
+# Gailit-magister-2023
+
+Bakalaureusetöö edasiarendus (leksikonid, kaalud ja piirid)
+
+# Edasi koopia bakalaureusetöö kirjeldusest
+
 Karl Gustav Gailit bakalaureusetöö *Spontaansuse ja formaalsuse kui dimensionaalse tekstimudeli dimensioonide automaatne hindamine veebitekstides* jaoks loodud Pythoni skript, mis hindab sisendiks antud tekstide formaalsust ja spontaansust.
 
 Tekstide hindamise skripti nimi on `Tekstid Skoorideks.py`.
