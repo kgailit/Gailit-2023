@@ -1,0 +1,114 @@
+Partiklid:
+('ou', 61) - (nagu "Ou, mis teed?") Ka lühendina nagu OÜ.
+('assa', 46) - (nagu "Assa mait!")Suurtähtedega aga sagedane firmanimi
+('ve', 41) - "vä" variant aga ka lühend ja inglise contraction (nt "I've")
+
+Keelevead:
+('se', 526) - "see" viga aga läbivalt suurte tähtedega (mitte-spontaanne) lühend
+('rt', 177) - Sageli pigem aga formaadiviga
+('eet', 52) - Läbivalt väikselt kirjaviga, muidu kas nimi või ajalühend
+('üke', 43) - Suurtähtedega aga ametlik lühend
+('konsentratsiooni', 17) - Vigane, aga kontekstid pigem ebaspontaansed
+('webilehekülgede', 11) - Ainult ühes pigem neutraalses stiilis allikas, aga siiski viga 
+('skypes', 10) - (peaks olema "Skype'is") Aga ka vähem-spontaansetes allikates (kasutusjuhend)
+('piksillatsiooni', 10) - Üks "l" palju, konteksti alusel mitte-spontanne ja formaalsuselt neutraalne
+('kaasta', 10) - "kaasata" viga aga ka nt ERR-is
+('effekt', 65) - Ka mitte-spontaansetes, isegi pool-formaalsetes kontekstides (edasi selle vormid)
+('effekti', 51)
+('effektiivsus', 15)
+('effektiivsem', 14)
+('effekte', 10)
+('effektiivsemaks', 10)
+
+Toorlaenud:
+('pop', 127) - Muusikažanri kohta enamasti, õigekeelne oleks "popp". Liitsõnana aga "popmuusika", ühe p-ga.
+('story', 113) - Palju nt sõna "lugu" asemel, aga ka ingliskeelsetes nimedes (nagu "West Side Story")
+('tattoo', 85) - Sageli blogides jms aga ka ingliskeelsetes fraasides
+('selfie', 80) - Enamasti blogides jms, aga levinud eestikeelset omasõna ei leidu. Ka ametlikemas kontekstides, nt Asus, Digitark, Postimees.
+('trip', 76) - (tähenduses "reis") Ka ühe sageli mainitud veebilehekülje nimi
+('case', 68) - Pikemates fraasides neutraalne, aga ka palju üksiku toorlaenuna esinemist
+('vibe', 64) - SketchEngine andis ka palju nimena, valimis aga laensõnana
+('god', 56) - Ainult väikese algustähega (lausealguline seega jääb probleemseks), suurega pealkirjades ja tsitaatides
+('default', 56) - Konteksti alusel ehk sobiks, aga ka politsei.ee kasutanud
+('tabs', 54) - Esineb AINULT masintõlgitud tekstides (neid üllatavalt palju)
+('challenge', 53) - Suure algustähega nime osa, enamasti aga suure algustähega
+('next', 52) - Suure algustähega sageli nime osa
+('easy', 50) - Suure algustähega sageli nime osa
+('problem', 50) - Tihti aga ka termini osana (multiple testing problem)
+('much', 49) - Fraasi osana (too much..., so much...)
+('reality', 48) - Ka näiteks IT terminid (VR,AR); teležanri nimi
+('money', 45) - Suure algustähega aga pealkirja osa
+('win', 46) - Tähenduses "võit" tunnuseline, aga ka lühend "Windows"
+('hardcore', 44) - Ka muusikažanr, tootenimedes (nt üks rasvapõleti)
+('nice', 44) - Ka Prantsuse linn
+('plot', 43) - Väga harva ka IT tekstides, enamasti "sužee" tähenduses
+('buffee', 43) - "Puhvet", ilmselt "pizza" olukord
+('stuff', 38) - Ka nimedes ja tsitaatides
+('please', 38) - Enamasti tsitaatides, kontekst enamasti siiski aga spontaansem
+('anyway', 36) - Ka üksikutes ingliskeelsetes nimedes
+('non-stop', 34) - Suurte algustähtedega ka mõne nime osa
+('amazing', 31) - Suure algustähega pigem nime osa
+('zombie', 27) - Enamasti blogides aga ka nimedes ja muudes kontekstides
+('actually', 24) - Suure algustähega pigem nime osa ("Love Actually")
+('off-season', 21) - Ühe korra blogis, muidu masintõlge
+('must-have', 21) - Aga ka nt Jyski kodulehel
+('relax', 18) - Ka sageli nimedes
+('funny', 14) - Ka nimedes
+('hype', 12) - Ka "hüpe" asendus, aga ka mittetunnuselisena nimedes
+('maybe', 12) - Suure algustähega aga nimedes
+('albergues', 11) - Hispaaniakeelne sõna hosteli kohta reisiblogides
+('albergue', 11) - Hispaaniakeelne sõna hosteli kohta reisiblogides
+('storyline', 10) - Pole kindel, kas kõik kontekstid spontaansed või nende hulgas ka ametlikemaid (mitte-blogi) arvustusi.
+('pussy', 10) - Vulgaarne sisu, aga enamasti nimedes (nt Pussy Riot); ehk vaid väikese algustähega tunnuseline
+('bazaar', 10) - "s" asemel algupärasem "z", ehk "pizza" olukord
+('shoppama', 59) - Kontekst enamasti (reisi)blogid, aga potentsiaalne kasutus ka reklaamides/kuulutustes (edasi selle sõna vormid)
+('shopping', 47) - Ka formaalsemates tekstides nt fraasi "mystery shopping" osana (tavaliselt järgneb eestikeelne seletav tõlge) ja kuulutustes nt Kristiine keskuse "ÖÖshopping"
+('shoppamas', 42)
+('shopata', 37)
+('shoppamise', 23)
+('shoppasime', 19)
+('shoppamiseks', 17)
+('shoppamist', 16)
+('shopates', 14)
+('shoppingu', 13)
+('shoppamine', 10)
+('shoping', 10) #Ilmselt vigane "shopping"
+
+Märgiasendused:
+('mix', 75) - Sageli laensõnana, siis pole tunnuseks
+('wälja', 43) - Ka vanades tekstides
+('wõi', 17) - Ka vanades tekstides
+('waid', 17) - Ka vanades tekstides
+('aqa', 12) - Ka lühend ja nimi
+('üx', 11) - Ka lühend/nimes aga väga harva?
+
+Lühendid:
+('etc', 228) - Ingliskeelne lühend eestikeelsete vastetega
+('nv', 142) - Ainult väiketähtedena "nädalavahetus", suurtähtedega muu, mittespontaanne tähendus
+('ns', 120) - Ainult väiketähtedena, suurtähtedena firma nime osa (NS King)
+('imo', 65) - Läbivate suurtähtedega pigem kirjekeelsem lühend, aga mitte alati
+('umb', 65) - Ka levinud nimi
+('ig', 61) - Üsna sage lühend Instagrami kohta, aga ka muu kohta
+('jh', 54) - Suure algustähega aga pigem piibliteemalistes tekstides tähenduses Johannese evangeelium
+('nl25', 27) - Enamasti kasutusel blogides, aga ehk ametlik pokkeriterminoloogia
+('cccp', 27) - Kontekstid pigem spontaansed; Sageli põgenemistubade kohta?
+('fb-s', 24) - Enamasti blogides, aga kahtlen, kas täisspontaanne
+('u2u', 17) - Kasutusel foorumites enamasti, aga pole kindel, kas on terminoloogia (user-to-user)
+
+Omasõnad:
+('hulgim', 71) - Sõnaveebis pole kõnekeelne, aga konteksti järgi võiks olla?
+('nummi', 37) - SketchEngine'is ka perekonnanime vormina
+('tõdeluse', 14) - Esineb ainult blogides, aga pole kindel tunnuselisuses
+('iidamast-aadamast', 10) - Sõnaveebis pole kõnekeelne, aga konteksti järgi võiks olla
+('õõtsad', 11) - Kasutusel vaid autofoorumites, aga näiliselt terminoloogia
+
+Murdeline:
+('inime', 42) - Kas murdeline või kirjaviga?
+('öeld', 13) - Kas murdeline või kirjaviga?
+
+Varia/Kategoriseerimata:
+('okeid', 43) - Tundmatuks jäänud vaid see vorm, aga ilmselt kõik vormid sobiksid leksikoni
+('check-ini', 38) - Peaks olema ülakomaga käänatud?
+('morfcorpus_bug', 29) - Pole tegelikult tunnus, aga esineb topelt-korpustatud tekstides (nagu www.cl.ut.ee_5683103.xml)
+('vähekenegi', 25) - Kontekst enamasti spontaanne/mitte-formaalne, aga pole kindel, kas on tunnuseline
+('tleb', 14) - Vahel "tuleb" märgikustutus, vahel formaadi- või kirjaviga (nt veana "taü tleb").

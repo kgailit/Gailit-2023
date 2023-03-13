@@ -1,0 +1,30 @@
+('pizza', 160)- #Vahel isegi kõrvuti "pizza" ja "pitsa"
+('videosid', 440) - Vigane, aga ka toimetatud tekstides
+('ex', 73) - Liiga palju eri tähendusi (endine, "eks", ladinakeelsed fraasid)
+('puzzle', 56) #Ilmselt jälle "pitsa vs pizza" olukord, aga igaks juhuks täheldan
+('lattet', 31) #Ka "café lattet" osana; üksindagi kontekst varieerub
+('keskonna', 30) #Ka ettevõtete, organisatsioonide ja muudel sellistel lehekülgedel (Arvutitark, Eesti Male, Tartu Ülikooli hambaarstiteadus)
+('shampoon', 30) #Kuigi õigekirja vaatenurgast vale, kasutavad seda vormi mitmed ettevõtted oma toodet kirjeldades, seega ei sobi sellesse ülesandesse
+('patendeeritud', 32) #Kirjaviga, aga neutraalsetes kontekstides
+('kudet', 27) #Valesti käänatud, aga kontekst varieerub - nii blogid kui ka näiteks artiaclinic.ee, diabeet.ee, els.ee
+('paraleelselt', 27) #Kirjaviga, aga ka neutraalsetes kontekstides (nt korduvalt Artutechi koduleheküljel tootekirjeldustes, EDC koertesprintide koduleheküljel)
+('gin', 23) #Jälle "pizza" olukord
+('friteeritud', 23) #Keeletoimetamise seisukohalt oleks parem "firtitud", aga kontekstid ei erista
+('nada', 20) #Kas toorlaen või kirjaviga; ka termin ja nimi.
+('tja', 20) #SketchEngine alusel partikkel, korpuse valimi alusel ametlik nimelühend
+('konseptsioon', 19) #Õige "kontseptsioon", aga kontekstid suuresti ebaspontaansed/neutraalsed
+('standartne', 17) #Õige "standardne", aga kontekstid suuresti ebaspontaansed/neutraalsed
+("facebook'i", 16) - Ülakoma ei peaks olema, aga kontekstid on nii formaalsemad kui ka spontaansemad/mitte-formaalsemad
+('optimiseeritud', 16) #Õige "optimeeritud", aga kontekstid suuresti ebaspontaansed/neutraalsed
+('meetode', 15) #Kuigi pole "õige" kääne, leidub see vaid mitte-spontaasetes kontekstides (nt Tartu Ülikooli juhendites)
+('buddy', 14) #Inglise toorlaen aga ka pärisnimi/-nimedes
+('jaad', 10) #"jääd", "jaa-d" ja kristall
+
+# Vana kirjakeel, aga "v"-"w" ka sage märgiasendus
+('weel', 70)
+('wana', 44) #Keelemäng "v -> w" aga ka vana kirjaviis
+('wiisin', 23)
+('wähe', 19) #Vana kirjakeel, aga "v"-"w" ka sage märgiasendus
+('pilwes', 18)
+('oliwad', 10)
+('wilja', 10)
