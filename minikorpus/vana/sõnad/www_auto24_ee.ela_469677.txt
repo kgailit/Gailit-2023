@@ -1,0 +1,13 @@
+{
+    "keelevead": 0.0,
+    "koos": 0.01592356687898089,
+    "laensõnad": 0.0,
+    "lühendid": 0.0,
+    "märgiasendused": 0.0031847133757961785,
+    "märgikordused": 0.0,
+    "omasõnad": 0.0,
+    "partiklid": 0.0,
+    "sõnaliited": 0.0031847133757961785,
+    "toorlaenud": 0.0,
+    "Ühendsõnastikust": 0.009554140127388535
+}

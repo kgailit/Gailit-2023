@@ -1,0 +1,7 @@
+5.72	kokkukleepunud_kirjavahemärkide_arv
+4.54	tajuverbide_osaarv
+4.06	läbinisti_suur
+3.03	korduvate_sõnade_arv
+2.04	korduvate_juppide_arv
+1.97	puuduva_suure_algustähega
+0.90	korduvate_tähtede_arv
