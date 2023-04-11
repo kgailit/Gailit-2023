@@ -5,22 +5,6 @@ output: html_notebook:
     df_print: paged
 ---
 
-# Väikesel korpusel morfoloogiliste ja süntaktiliste tunnuste mõjud veebitekstide spontaansuse ja formaalsuse inimhinnangutele
-
-Karl Gustav Gailit
-
-# Sissejuhatus
-
-Antud fail, "Gailit_IseseisevTööNotebook.Rmd" on Karl Gustav Gailit aine Kvantitatiivse andmeanalüüsi alused humanitaarteadlastele ja rakendustarkvara R jaoks tehtud iseseisva töö R-i *notebook*. Fail hõlmab kogu projektis kasutatud koodi, andmete ning iseseisva töö kirjeldust ning tulemuste analüüsi.
-
-Failid "juhumetsadeInfoLog.pdf" ning "korrelatsioonimaatriks.pdf" sisaldavad iseseisva töö käigus tehtud jooniseid, mida on keeruline *notebook*-i seest välja lugeda.
-
-Töös kasutatud andmed on failis "GailitAndmestik.csv" ning see sisaldab 120 teksti kohta 20 erinevat morfoloogilist ja/või süntaktilist tunnust, formaalsuse ja spontaansuse keskmist inimhinnangut ning failinime. Andmestik põhineb Kristiina Vaigu korpusel ning tunnused on arvutatud kasutades oma bakalaureusetöös loodud koodi.
-
-Kõik tunnused andmestikus on arvulised. Enamus tunnuseid jäävad vahemikku 0 kuni 1, olles tunnuse esinemise protsent tekstis, et tekstide pikkused ei mõjutaks hindamist liiga.
-
-Küsimus, millele ma vastust otsin, on "Millised tunnused on aines õpitud meetodite alusel kõige olulisemad tekstide formaalsuse ja spontaansuse hinnangute hindamiseks olulisimad?". Seega on hüpoteesideks "Valitud tunnuste alusel ei ole üldse võimalik hinnata tekstide formaalsust ega spontaansust" (H0) ning "Valitud tunnuste alusel on mingil määral võimalik nii formaalsust kui ka spontaansust" (H1),
-
 # Pakettide laadimine ja eelseadistus
 
 ```{r}
@@ -40,116 +24,16 @@ dat <- read.csv(file = 'Randmestik.csv', encoding = "UTF-8")
 names(dat)[names(dat) == "nud.partitsiibiga_verbide_osakaal"] <- "nudpartitsiibiga_verbide_osakaal"
 ```
 
-# Andmestiku kirjeldus
-
-## Andmed
-
-Andmestikus esineb 23 tulpa. Esimene tulp nimetab algset faili, millest on välja arvutatud tunnused, ehk tegu ei ole tunnusega.
-
-Viimased kaks tulpa on dimensioonid formaalsus ja spontaansus, mis on iseseisvas töös uuritavad tunnused. Mõlemad tunnused pärinevad Kristiina Vaigu korpusest, kus kõiki 120 teksti on inimesed hinnanud skaalal 0 kuni 3, kus 0 tähendab, et dimensiooni tekstis ei esine, ning 3 tähendab, et dimensiooni esineb tekstis väga tugevalt. Olen normaliseerinud need vahemikku 0 kuni 1. Seega, mida ühele lähemal, seda formaalsem või spontaansem on tekst.
-
-Ülejäänud 20 tulpa on tunnused. Arvutasin need välja oma bakalaureusetöös loodud Pythoni hindamisprogrammi abil, kus katsetasin luua reeglipõhist hindamismudelit. Edasi toon välja kõik tunnused ja nende tähendused:
-
-1.  TTR -- *Type-Token ratio* ehk sõnavara variatiivsus. Unikaalsete sõnade arv jagatud kõikide sõnade arvuga. Seega 1 tähistab, et iga sõna tekstis esineb vaid ühe korra.
-
-2.  asesõnade_esimese_isiku_osaarv -- Kõikide esimest isikut väljendavate asesõnade protsent kõikidest asesõnadest.
-
-3.  asesõnade_kolmanda_isiku_osaarv -- Kõikide teist isikut väljendavate asesõnade protsent kõikidest asesõnadest.
-
-4.  asesõnade_teise_isiku_osaarv -- Kõikide kolmandat isikut väljendavate asesõnade protsent kõikidest asesõnadest.
-
-5.  emotikonide_arv -- Tekstis esinevate emotikonide arv. Näiliselt on koodis tekkinud viga ja esineb rohkelt valepositiivseid emotikone.
-
-6.  kaudse_kõneviisi_osakaal -- *vat*-tunnuseliste verbide protsent kõikidest verbidest.
-
-7.  kirjavigadega_osaarv -- Pythoni teegi EstNLTK poolt kirjavigasteks märgitud sõnade protsent kõikidest sõnadest tekstis. Välja on arvatud pärisnimed, mis saavad sageli vale kirjavea märgenduse.
-
-8.  kokkukleepunud_kirjavahemärkide_arv -- Arv kirjavahemärkidest (välja arvatud sidekriips), mis esineb tühikuta kahe sõna vahel.
-
-9.  korduvate_sõnade_arv -- Arv kordadest, kus esineb üks sõna kaks või enam korda järjest.
-
-10. korduvate_tähtede_arv -- Arv kordadest, kus ühe sõna sees esineb üks täht kolm või enam korda järjest.
-
-11. käändsõnade_osaarv -- Käändsõnade protsent kõikidest sõnadest tekstis.
-
-12. lemmapikkus -- Lemmade aritmeetiline keskmine. Liitsõnad on jaotatud osalemmadeks ja käsitletud edasi nagu lihtsõnade lemmad.
-
-13. luhemate_tundmatute_osakaal -- EstNLTK sõnaliigi oletamiseta analüüsimisel tundmatuks jäänud maksimaalselt 10 tähemärgi pikkuste sõnade protsent kõikidest sõnadest. EstNLTK sõnaliigi oletamiseta analüüsimisel jäävad tundmatuks sõnad, mis ei leidu sisemistes leksikonides, mis põhinevad Õigekeelsussõnaraamatul.
-
-14. läbinisti_suur -- Kõikide läbivalt suurte tähtedega kirjutatud mitte-lühendite osakaal kõikidest sõnadest.
-
-15. nudpartitsiibiga_verbide_osakaal -- *nud*-partitsiibiga verbide protsent kõikidest verbidest.
-
-16. passiivi_osakaal -- Kõikide impersonaalsete ehk umbisikuliste verbide protsent kõikidest verbidest.
-
-17. puuduva_suure_algustähega -- Protsent kõikidest sõnadest tekstis, millel on puudu vajalik suur algustäht.
-
-18. verbide_esimese_isiku_osaarv -- Esimeses isikus olevate verbide osakaal kõikidest verbidest.
-
-19. verbide_kolmanda_isiku_osaarv -- Teises isikus olevate verbide osakaal kõikidest verbidest.
-
-20. verbide_teise_isiku_osaarv -- Kolmandas isikus olevate verbide osakaal kõikidest verbidest.
-
-## Üldülevaade
-
-```{r}
-# Kirjelda andmestikku
-summary(dat)
-```
-
-## Histogrammid
-
-```{r}
-# Kasutatud for-tsükklit, et väljastada iga tunnuse kohta eraldi joonis
-# Ei kasutanud ggplot-i, kuna see tsükli sees ei toiminud ning paneelide kasutamine tegi joonise lugemise notebook-ist keeruliseks.
-for(i in 2:ncol(dat)) {
-  colname = colnames(dat)[i]
-  hist(dat[,i], main=colname, xlab=colname, breaks=23)
-}
-```
-
-## Histogrammid logaritmitud andmetest
-
-```{r}
-# Joonised logaritmitud andmetest
-# Kasutatud for-tsükklit, et väljastada iga tunnuse kohta eraldi joonis
-# Ei kasutanud ggplot-i, kuna see tsükli sees ei toiminud ning paneelide kasutamine tegi joonise lugemise notebook-ist keeruliseks.
-for(i in 2:ncol(dat)) {
-  colname = colnames(dat)[i]
-  hist(log1p(dat[,i]), main=paste(colname, "Log", sep = " "), xlab=paste(colname, "Log", sep = " "), breaks=23)
-}
-```
-
-Nagu histogrammidest on näha, sarnanevad logaritmitud formaalsuse ja spontaansuse hinnangud normaaljaotusega paremini, kui logaritmimata variandid, seega kasutan mudelite tegemiseks logaritmitud formaalsust ja spontaansust. Tunnuseid seevastu ei muuda, vaid kasutan algseid variante. Paljud neist tunnustest on väga vasakule kaldu ning kõige sagedasem väärtus tunnusel on 0, ehk tunnust ei esine tekstis.
-
-## Korrelatsioonimaatriks
-
-```{r}
-# Loetavam versioon failis "korrelatsioonimaatriks.pdf"
-kor_dat <- cor(dat[,2:23], use = "pairwise.complete.obs")
-corrplot(kor_dat, 
-         type = "upper", # ainult ülemine osa graafikust
-         diag = FALSE)
-```
-
-Hõlmasin korrelatsioonimaatriksisse ka uuritavad tunnused, et vaadata esialgseid korrelatsioone kõikide tunnuste vahel. Nagu näha, on spontaansuse ja formaalsuse vahel võrdlemisi tugev negatiivne korrelatsioon, kuid kuna need on mõlemad erinevad uuritavad tunnused, ei tekita see mudelite koostamisel probleeme.
-
-Lisaks on näha väga tugevat negatiivset korrelatsiooni verbide kolmanda isiku ja verbide teise isiku ning verbide esimese isiku ja verbide kolmanda isiku kasutusprotsentide vahel, mis on ettearvatav: mida rohkem üht verbi isikut kasutada, seda vähem on võimalik teisi kasutada. Küll aga on huvitav täheldada, et verbide esimese ja teise isiku kasutamisprotsentide vahel ei esine korrelatsiooni.
-
-Tugevaim positiivne korrelatsioon esineb kirjavigade sõnade protsendi ja läbivate suurtähtedega kirjutatud sõnade vahel. Võib eeldada, et see on kuna mõlemad on väidetavad spontaansete veebitekstide tunnused aga ka kuna sageli on suurtähtedega kirjutatud lühendid märgitud kirjavigadeks.
-
 # Juhumetsad
 
 ## Juhumetsade koostamine
 
-Loon kaks juhumetsamudelit, üks formaalsuse ja teine spontaansuse hindamiseks. Kasutan mudelites kõiki tunnuseid, välja arvatud failinime (sest tegu pole tegeliku tunnusega) ning uuritavaid tunnuseid, ehk ei kasuta formaalsuse hindamiseks spontaansuse hinnangut ega vastupidi, spontaansuse hindamiseks formaalsuse hinnangut.
-
 ```{r}
 # Juhumets logaritmimisega (kasutatud lineaarse regressiooni tunnuste valimiseks)
-m.mets.form.log <- randomForest(log1p(formaalsus) ~  TTR + asesõnade_esimese_isiku_osaarv + asesõnade_kolmanda_isiku_osaarv + asesõnade_teise_isiku_osaarv + emotikonide_arv + kaudse_kõneviisi_osakaal + kirjavigadega_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_sõnade_arv + korduvate_tähtede_arv + käändsõnade_osaarv + lemmapikkuse_osaarv + luhemate_tundmatute_osakaal + läbinisti_suur + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + puuduva_suure_algustähega + verbide_esimese_isiku_osaarv + verbide_kolmanda_isiku_osaarv + verbide_teise_isiku_osaarv + koos, 
+m.mets.form.log <- randomForest(formaalsus ~  TTR + asesõnade_esimese_isiku_osaarv + asesõnade_kolmanda_isiku_osaarv + asesõnade_teise_isiku_osaarv + emotikonide_arv + kaudse_kõneviisi_osakaal + lemmapikkuse_osaarv  + käändsõnade_osaarv + leksikonides_esinevade_osaarv + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + verbide_esimese_isiku_osaarv + verbide_kolmanda_isiku_osaarv + verbide_teise_isiku_osaarv, 
                             data = dat,
                             importance = TRUE)
-m.mets.spon.log <- randomForest(log1p(spontaansus) ~ TTR + asesõnade_esimese_isiku_osaarv + asesõnade_kolmanda_isiku_osaarv + asesõnade_teise_isiku_osaarv + emotikonide_arv + kaudse_kõneviisi_osakaal + kirjavigadega_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_sõnade_arv + korduvate_tähtede_arv + käändsõnade_osaarv + lemmapikkuse_osaarv + luhemate_tundmatute_osakaal + läbinisti_suur + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + puuduva_suure_algustähega + verbide_esimese_isiku_osaarv + verbide_kolmanda_isiku_osaarv + verbide_teise_isiku_osaarv + koos, 
+m.mets.spon.log <- randomForest(spontaansus ~ TTR + asesõnade_esimese_isiku_osaarv + emotikonide_arv + lemmapikkuse_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_juppide_arv + käändsõnade_osaarv + leksikonides_esinevade_osaarv + läbinisti_suur + puuduva_suure_algustähega + tajuverbide_osaarv,
                             data = dat,
                             importance = TRUE)
 ```
@@ -172,18 +56,6 @@ varImpPlot(m.mets.form.log)
 dev.off()
 ```
 
-#### Kirjeldus
-
-Juhumetsa *Mean of Squared Residuals* on üsna väike, olles 0.01192917, ning mudel kirjeldab 49.43% andmestiku varieerumist. Sellest saab järeldada, et praeguste andmete põhjal on juhumets võimeline seletama ainult poolt formaalsuse inimhinnangute varieerumisest. Järelikult mõjutavad formaalsust veel lisaparameetrid, mida selles andmestikus, ja seega ka bakalaureusetöös loodud mudelis, ei leidu.
-
-Andmestikus olevate andmete põhjal saab aga luua üsna toimiva mudeli, millest saab omakorda vaadata, millised tunnused on mudelis olulisemad ja millised vähem olulisemad. Selle põhjal saab oletada, mida inimesed on tekstide hindamisel oluliseks pidanud ja seega tulevikus reeglipõhises mudelis saab nendele tunnustele panna suurema olulisuse, kui tunnustele, mida mudelid nii oluliseks ei pea.
-
-Mudeli olulisuse jooniselt on näha, et kõige olulisem tunnus mudelis on käändsõnade protsent (kõikidest sõnadest tekstis), mille %IncMSE on 18.8. Teised suurema %IncMSE-ga tunnused on teksti keskmine lemma pikkus, verbide kolmanda ja esimese isiku osakaal kõikidest verbidest ning passiivi ehk impersonaalsete verbide protsent kõikidest verbidest. Seda võis ka oletada korrelatsioonimaatriksi põhjal, kus tunnustel on tugevam korrelatsioon formaalsusega, kui teistel tunnustel.
-
-Neli kõige ebaolulisemat tunnust on korduvate sõnade arv, puuduvate suurte algustähtede suhtarv, emotikonide arv ning kaudses kõneviisis olevate verbide osakaal kõikidest verbidest.
-
-Teada saadud informatsiooni kasutan ka lineaarse regressiooni mudelites. Ma ei saa kasutada kõiki tunnuseid, kuna R-il ei oleks sellise mudeli *stepwise* meetodil loomise jaoks piisavalt mälu. Seepärast eemaldan eelnimetatud neli kõige ebaolulisemat tunnust. Lisaks eemaldan verbide esimese isiku osakaalu, kuna kuigi tegu oli suure %IncMSE-ga tunnusega, on selle %IncMSE siiski madalam, kui verbide kolmanda isiku osakaalul, ning kuna nende kahe tunnuse vahel on tugev korrelatsioon, ei saa ma mõlemat tunnust lineaarse regressiooni mudelis kasutada.
-
 ### Spontaansus
 
 ```{r}
@@ -199,137 +71,3 @@ jpeg(file="saving_plot2.jpeg", width = 1200, height=500)
 varImpPlot(m.mets.spon.log)
 dev.off()
 ```
-
-#### Kirjeldus
-
-Juhumetsa *Mean of Squared Residuals* on samuti üsna väike, olles 0.01762778, kuid, nagu näha, on spontaansuse juhumetsal see arv ligikaudu 0.057 võrra suurem kui formaalsuse juhumetsal. Juhumets kirjeldab 38.11% andmestiku varieerumist. Järelikult mõjutavad spontaansust tugevalt lisaparameetrid, mida selles andmestikus, ja seega ka bakalaureusetöös loodud mudelis, ei leidu.
-
-Andmestikus olevate andmete põhjal loodud mudelist vaatan, millised tunnused on mudelis olulisemad ja millised vähem olulisemad, et oletada, millised tunnused on olnud hindamisel potentsiaalselt olulisemad, et ka reeglipõhises mudelis oleksid inimhinngangul olulisemad tunnused olulisemad, kui vähem olulised tunnused.
-
-Mudeli olulisuse jooniselt on näha, et kõige olulisem tunnus mudelis on jällegi käändsõnade protsent (kõikidest sõnadest tekstis), mille %IncMSE on 18.8. Teised suurema %IncMSE-ga tunnused on puuduvate suurte algustähtede arv, järgneva sõnaga kokku kirjutatud kirjavahemärkide arv ning passiivi ehk impersonaalsete verbide protsent kõikidest verbidest.
-
-Neli kõige ebaolulisemat tunnust on emotikonide arv, asesõnade esimese ja kolmanda isiku osakaalud kõikidest asesõnadest ning kaudses kõneviisis olevate verbide osakaal kõikidest verbidest.
-
-Teada saadud informatsiooni kasutan ka lineaarse regressiooni mudelites. *Stepwise* meetodil mudeli loomiseks pidin esmalt eemaldama mälupiirangu tõttu mõningaid tunnuseid, milleks valisin kõige eelnimetatud neli kõige ebaolulisemat tunnust. Lisaks eemaldan verbide kolmanda isiku osakaalu, kuna selle %IncMSE on madalam, kui verbide esimese isiku osakaalul, ning kuna nende kahe tunnuse vahel on tugev korrelatsioon, ei saa ma mõlemat tunnust lineaarse regressiooni mudelis kasutada.
-
-# Lineaarne regressioon
-
-Kasutan lineaarsete mudelite moodustamiseks *Stepwise* protseduuri, mis koostab mudeli, lisades igal sammul uue faktori ja vaadates, kas keerukam mudel on oluliselt parem lihtsamast mudelist. Kasutan ainult tunnuste lisamise meetodit, et saaksin näha võimalikult palju olulisi tunnuseid.
-
-## Formaalsus
-
-```{r}
-# Eemaldatud on:
-#   Verbide kolmanda isiku protsent, sest see korreleerus tugevalt verbide esimese isiku protsendiga ning oli juhumetsas väiksema %IncMSE-ga
-#   Korduvate sõnade arv, kuna see on väikese %IncMSE-ga ja IncNodePurity-ga
-#   Korduvate tähtede arv, kuna see on väikese %IncMSE-ga ja IncNodePurity-ga
-#   Emotikonide arv, kuna see on väikese %IncMSE-ga ja IncNodePurity-ga (TTR oli väiksema %IncMSE-ga, aga palju suurema IncNodePurity-ga, seega jätsin selle sisse)
-m_form <- step(lm(log1p(formaalsus) ~ 1, data=dat), scope = log1p(formaalsus) ~ asesõnade_esimese_isiku_osaarv + asesõnade_kolmanda_isiku_osaarv + asesõnade_teise_isiku_osaarv + TTR + kaudse_kõneviisi_osakaal + kirjavigadega_osaarv + kokkukleepunud_kirjavahemärkide_arv + käändsõnade_osaarv + lemmapikkuse_osaarv + luhemate_tundmatute_osakaal + läbinisti_suur + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + puuduva_suure_algustähega + verbide_esimese_isiku_osaarv + verbide_teise_isiku_osaarv + koos, direction = "forward")
-```
-
-### Kirjeldus
-
-```{r}
-#Mudeli ülevaade
-summary(m_form)
-```
-
-```{r}
-#Mudeli anova
-anova(m_form)
-```
-
-Formaalsuse hindamise mudeli p-väärtus on \< 2.2e-16, ehk tõenäosus sellist tulemust juhuslikult saada on väga väike, seega saab 0-hüpoteesi hüljata, ehk see mudel on väga palju parem juhuslikust pakkumisest.
-
-Mudeli R^2^ on 0.5694, ehk mudel kirjeldab 56,94% formaalsuse varieerumisest, mis on rohkem, kui juhupuu.
-
-*Stepwise* protseduuri järgi on mudelisse lisatud 7 tunnust: käändsõnade_osaarv, lemmapikkus, passiivi_osakaal, verbide_esimese_isiku_osaarv, TTR, kaudse_kõneviisi_osakaal ja puuduva_suure_algustähega. Need 7 tunnust on seega andmestiku kõige olulisemad tunnused formaalsuse hindamiseks.
-
-Edasi vaatan mudeli jääke:
-
-```{r}
-#Mudeli jääkide normaaljaotus
-hist(residuals(m_form))
-shapiro.test(residuals(m_form))
-```
-
-```{r}
-#Homoskedastilisus
-bptest(m_form)
-```
-
-```{r}
-#Autokorrelatsioon
-acf(residuals(m_form), type="correlation")
-```
-
-Mudeli jäägid on normaaljaotusega, ei ole homoskedastilised ning ei leidu autokorrelatsiooni. Kuna mudeli jäägid ei ole homoskedastilised, ei ole ka mudeli eeldused täidetud. Üritasin internetist leida selle lahendamiseks võimalusi, kuid ei saanud neid kas tööle või need ei aidanud (üks soovitus oli uuritavat tunnust logaritmida, mis on juba niigi eelnevalt tehtud).
-
-Loodetavasti aga ei mõjuta see liigselt tulemusi. Kuna minu eesmärk on mitte luua ideaalset mudelit vaid uurida tunnuste mõjusid, on ehk ka selle täitmata eeldusega mudeli hinnangud piisavalt sobilikud.
-
-## Spontaansus
-
-```{r}
-#Spontaansuse mudel - mudeli ülesehitus identne formaalsuse omaga, ainult uuritav tunnus varieerub
-# Mudeli loomine on veidi aeglane, võtab paar minutit aega, aga (vähemalt minu arvutis) ei jookse kokku
-# Eemaldatud on:
-#   Verbide esimese isiku protsent, sest see korreleerus tugevalt verbide kolmanda isiku protsendiga ning oli juhumetsas palju väiksema %IncMSE-ga
-#   Kaudse kõneviisi osakaal, kuna see on väikese %IncMSE-ga ja IncNodePurity-ga
-#   Asesõnade esimese ja kolmanda isikute osakaaluid, kuna mõlemad on väikese %IncMSE-ga ja IncNodePurity-ga
-#   Emotikonide arv, kuna see on väikese %IncMSE-ga ja IncNodePurity-ga
-m_spon <- step(lm(log1p(spontaansus) ~ 1, data=dat), scope = log1p(spontaansus) ~  asesõnade_teise_isiku_osaarv + TTR + kirjavigadega_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_tähtede_arv + käändsõnade_osaarv + lemmapikkuse_osaarv + luhemate_tundmatute_osakaal + läbinisti_suur + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + puuduva_suure_algustähega + verbide_kolmanda_isiku_osaarv + verbide_teise_isiku_osaarv + koos, direction = "forward")
-```
-
-### Kirjeldus
-
-```{r}
-#Mudeli ülevaade
-summary(m_spon)
-```
-
-```{r}
-#Mudeli anova
-anova(m_spon)
-```
-
-Spontaansuse hindamise mudeli p-väärtus on \< 3.1e-16, ehk tõenäosus sellist tulemust juhuslikult saada on väga väike, seega saab 0-hüpoteesi hüljata, ehk see mudel on väga palju parem juhuslikust pakkumisest.
-
-Mudeli R^2^ on 0.5234, ehk mudel kirjeldab 52,34% spontaansuse varieerumisest, mis on rohkem, kui juhupuu.
-
-*Stepwise* protseduuri järgi on mudelisse lisatud 5 tunnust: käändsõnade_osaarv, puuduva_suure_algustähega, kirjavigadega_osaarv, nudpartitsiibiga_verbide_osakaal, käändsõnade_osaarv:nudpartitsiibiga_verbide_osakaal, käändsõnade_osaarv:kirjavigadega_osaarv. Need 5 tunnust on seega andmestiku kõige olulisemad tunnused formaalsuse hindamiseks.
-
-Tunnuste hulgas on kaks tunnust, milles esineb kahe tunnuse vaheline interaktsioon. Need on käändsõnade_osaarv:nudpartitsiibiga_verbide_osakaal ja käändsõnade_osaarv:kirjavigadega_osaarv. Seega, spontaansuse hindamisel on nii *nud*-partitsiipidega verbide esinemine ja kirjavigadega sõnade arv mõjutatud käändsõnade protsendist kõikidest sõnadest.
-
-Edasi vaatan mudeli jääke:
-
-```{r}
-#Mudeli jääkide normaaljaotus
-hist(residuals(m_spon))
-shapiro.test(residuals(m_spon))
-```
-
-```{r}
-#Homoskedastilisus
-bptest(m_spon)
-```
-
-```{r}
-#Autokorrelatsioon
-acf(residuals(m_spon), type="correlation")
-```
-
-Mudeli jäägid on normaaljaotusega, ei ole homoskedastilised ning ei leidu autokorrelatsiooni. Kuna mudeli jäägid ei ole homoskedastilised, ei ole ka mudeli eeldused täidetud. Üritasin internetist leida selle lahendamiseks võimalusi, kuid ei saanud neid kas tööle või need ei aidanud (üks soovitus oli uuritavat tunnust logaritmida, mis on juba niigi eelnevalt tehtud).
-
-Loodetavasti aga ei mõjuta see liigselt tulemusi. Kuna minu eesmärk on mitte luua ideaalset mudelit vaid uurida tunnuste mõjusid, on ehk ka selle täitmata eeldusega mudeli hinnangud piisavalt sobilikud.
-
-# Kokkuvõte
-
-Töös uurisin ma 20 tunnuse mõju veebitekstide formaalsuse ja spontaansuse inimhinnangule. Vaatlesin tulemuste korrelatsiooni ning tegin kokku 4 mudelit: kaks formaalsuse ja kaks spontaansuse hindamiseks.
-
-Esimene mudelipaar olid juhumetsad, milles vaatlesin, millised tunnused on olulisemad ja millised vähem olulisemad. Nii formaalsuse ja spontaansuse hindamiseks oli olulisim käändsõnade osakaal kõikidest sõnadest tekstis. Formaalsuse jaoks olid lisaks olulised keskmine lemma pikkus, verbide kolmanda ja esimese isiku osakaal kõikidest verbidest ning passiivi ehk impersonaalsete verbide protsent kõikidest verbidest. Spontaansuse jaoks olid olulised ka puuduvate suurte algustähtede arv, järgneva sõnaga kokku kirjutatud kirjavahemärkide arv ning passiivi ehk impersonaalsete verbide protsent kõikidest verbidest. Ebaolulisteks tunnusteks mõlema dimensiooni puhul osutusid emotikonide arv ning kaudses kõneviisis olevate verbide osakaal kõikidest verbidest. Formaalsuse puhul olid ebaolulisemad lisaks veel korduvate sõnade arv ning puuduvate suurte algustähtede osakaal, spontaansuse puhul aga olid lisaks ebaolulised asesõnade esimese ja kolmanda isiku osakaalud kõikidest asesõnadest.
-
-Seejärel lõin kaks lineaarse regressiooni mudelit kasutades *stepwise* meetodit. Kuigi mudelitel osutusid jäägid olevat heteroskedastilised, loodan, et nende tulemuste alusel on võimalik järeldusi teha. Formaalsuse hindamise mudelis oli kasutusel 7 kirjeldavat tunnust: käändsõnade osakaal kõikidest sõnadest, keskmine lemmapikkus, umbisikulise tegumoe osakaal kõikidest verbidest, esimeses isikus verbide osakaal kõikidest verbidest, sõnavara variatiivsus, kaudse kõneviisi osakaal kõikidest verbidest ning puuduvate suurtähtedega sõnade osakaal kõikidest sõnadest. Spontaansuse mudelis on viis kirjeldavat tunnust: käändsõnade osakaal kõikidest sõnadest, puuduvate suurtähtedega sõnade osakaal kõikidest sõnadest, *nud*-partitsiibiga verbide osakaal kõikidest verbidest, koosmõju *nud*-partitsiibiga verbide osakaalu ning käändsõnade osakaalu vahel ning koosmõju käändsõnade osakaalu ning kirjavigadega sõnade osakaalu vahel.
-
-Need tulemused kinnitasid hüpoteese, et andmestikus olevate tunnuste alusel on võimalik hinnata veebitekstide spontaansust ja formaalsust, kuigi mitte täielikult.
-
-Iseseisva töö käigus välja arvutatud tulemuste alusel saan edaspidi magistritöö raames edasi arendatavas formaalsuse ja spontaansuse reeglipõhises automaathindamise süsteemi arendada. Kavatsen kasutada leitud tulemusi, et määrata eri kirjeldavatele tunnustele eri olulisused, kuna bakalaureusetöö jaoks loodud mudelis olid kõik tunnused sama kaalu ehk olulisega. Lineaarse regressiooni mudelis ning juhumetsades kõrge %IncMSE-ga tunnused on seega kõrge olulisusega ning tunnused, mida lineaarse regressiooni mudelites ei kasutatud ning mille %IncMSE oli juhumetsas madal, on seega vähem olulised.

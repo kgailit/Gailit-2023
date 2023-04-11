@@ -42,7 +42,7 @@ www.naksakad.blogspot.com_4037287.xml,0.2,0.76
 www.newyouthpolicy.org_4711971.xml,0.8,0.3
 www.offiart.com_3812299.xml,0.05,0.8
 www.pakri.ee_5757435.xml,0.55,0.15
-www.reinsma.blogspot.com_5758583.xml,0.05,0.81
+www.reinsma.blogspot.com_5758583.xml,0.15,0.81
 www.reisiturg.ee_4677716.xml,0.6,0.05
 www.snjrv.blogspot.com_5093229.xml,0.01,0.9
 www.suusilicious.blogspot.com_5425908.xml,0.2,0.8

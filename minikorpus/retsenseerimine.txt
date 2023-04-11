@@ -1,0 +1,17 @@
+Pealkiri: Eesti keele ajasemantika mudelite parandamine kronoloogiate koostamise eesmärgil
+	
+Vead:
+	Leidus kirja- (nii koma- kui õigekirja-) ja stiilivigu, näiteks juba kogu teksti esimene lause. Soovitan tulevikus magistritööd mitu korda üle lugeda, eelistatavalt eri formaatides, näiteks arvutiekraanil ja välja prindituna paberil. See võimaldab teksti uues kontekstis lugeda, mis aitab näha teksti teisest vaatenurgast ja seega võimaldab leida uusi probleemkohti, eriti selliseid, mis Wordi's punast joont alla ei saa (nagu sõna "tõlgendus" kääne fraasis "ning anda tõlgendus vähem täpsustatud ajaväljenditele")
+	
+Peatükid:
+	Seminaritööl leidus sissejuhatus, kokkuvõte ja kaks sisupeatükki. Sisupeatükkidel oli omakorda alampeatükke, millel vahel oli omakorda alampeatükke. Kolmekordse sügavuse vältimiseks ja peatükkide paremaks teemade kaupa jaotamiseks oleks saanud edukalt jagada esimese peatüki mitmeks osaks, näiteks varasemad uurimused ja andmestiku kirjeldus.
+	
+Lisa:
+	Ajaväljendite tuvastamist kirjeldades mainisid, et "Ajaväljendite tuvastaja testimisel saadi ajaväljendite eraldamise saagiseks 82% ja täpsuseks 98,4%." ning seejärel "Ajaväljendite liigitamise täpsuseks saadi 97,2%". Siin on aru saada, et sõnal "täpsus" on kaks eri tähendust. Inglise keeles on see "precision" ja "accuracy", ehk kaks eri sõna, kuid eesti keeles on tähendused homonüümid, mis võib probleemseks osutuda, eriti inimestele, kes teemast vähem teadlikud on. Kahjuks ei oska ise probleemile lahendust anda, kuid ehk juhendaja või keegi teine oskaks pakkuda variante, kuidas homonüümiast vähemalt oma teksti sees lahti saada.
+	
+Küsimused:
+	Kas on võimalik näidata, kuidas andmed on failidena treenimisandmeteks salvestatud, või pole need inimloetaval kujul kätte saadavad? Küsin, kuna ajajoonele paigutumise graafiline näide on olemas, kuid masinõppe otse sellist vormi kasutada ju ei saa.
+	
+	Mainisid, et sinu märgendatud ajafaktide korpusel ja Eesti TimeML korpusel on märgendamiserinevusi. Kuidas plaanid neid lahendada?
+	
+	Mida tähendavab "parimad tulemused", kui mainisid Leeuwenbergi ja Moensi 2020 tehisnärvivõrkudel baseeruvat mudelit? Lihtsalt kõige kõrgemad protsendid?
