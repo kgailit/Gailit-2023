@@ -33,7 +33,7 @@ names(dat)[names(dat) == "nud.partitsiibiga_verbide_osakaal"] <- "nudpartitsiibi
 m.mets.form.log <- randomForest(formaalsus ~  TTR + asesõnade_esimese_isiku_osaarv + asesõnade_kolmanda_isiku_osaarv + asesõnade_teise_isiku_osaarv + emotikonide_arv + kaudse_kõneviisi_osakaal + lemmapikkuse_osaarv  + käändsõnade_osaarv + leksikonides_esinevade_osaarv + nudpartitsiibiga_verbide_osakaal + passiivi_osakaal + verbide_esimese_isiku_osaarv + verbide_kolmanda_isiku_osaarv + verbide_teise_isiku_osaarv, 
                             data = dat,
                             importance = TRUE)
-m.mets.spon.log <- randomForest(spontaansus ~ TTR + asesõnade_esimese_isiku_osaarv + emotikonide_arv + lemmapikkuse_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_juppide_arv + käändsõnade_osaarv + leksikonides_esinevade_osaarv + läbinisti_suur + puuduva_suure_algustähega + tajuverbide_osaarv,
+m.mets.spon.log <- randomForest(spontaansus ~ TTR + asesõnade_esimese_isiku_osaarv + emotikonide_arv + lemmapikkuse_osaarv + kokkukleepunud_kirjavahemärkide_arv + korduvate_juppide_arv + käändsõnade_osaarv + leksikonides_esinevade_osaarv + läbinisti_suur + puuduva_suure_algustähega,
                             data = dat,
                             importance = TRUE)
 ```

@@ -1,0 +1,8 @@
+{
+    "formaalsus_ilma": 0.3705128205128205,
+    "formaalsus_kaalud": 0.4357799274486093,
+    "formaalsus_kaalud_sujuv": 0.4365914786967418,
+    "spontaansus_ilma": 0.05084745762711865,
+    "spontaansus_kaalud": 0.0,
+    "spontaansus_kaalud_sujuv": 0.0
+}

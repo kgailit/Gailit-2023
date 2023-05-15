@@ -1,0 +1,4 @@
+{
+    "formaalsus": 0.5625,
+    "spontaansus": 0.625
+}

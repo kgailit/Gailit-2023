@@ -1,0 +1,14 @@
+käändsõnade_osaarv               20.749461
+lemmapikkuse_osaarv              18.499217
+verbide_esimese_isiku_osaarv     12.816501
+verbide_kolmanda_isiku_osaarv    12.716067
+passiivi_osakaal                  9.826641
+emotikonide_arv                   9.636678
+TTR                               8.796701
+asesõnade_esimese_isiku_osaarv    7.973740
+leksikonides_esinevade_osaarv     6.295052
+verbide_teise_isiku_osaarv        5.484813
+asesõnade_teise_isiku_osaarv      4.194781
+nudpartitsiibiga_verbide_osakaal  4.025602
+asesõnade_kolmanda_isiku_osaarv   2.436631
+kaudse_kõneviisi_osakaal          1.963495

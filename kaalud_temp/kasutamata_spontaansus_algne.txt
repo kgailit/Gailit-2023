@@ -1,6 +1,3 @@
-19.91	käänduvate_lemmade_osaarv
-8.08	verbide_esimese_isiku_osaarv
-8.02	passiivi_osakaal
 7.10	verbide_kolmanda_isiku_osaarv
 5.59	verbide_teise_isiku_osaarv
 4.67	asesõnade_teise_isiku_osaarv
