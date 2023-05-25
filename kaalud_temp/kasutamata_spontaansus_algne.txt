@@ -1,8 +1,0 @@
-7.10	verbide_kolmanda_isiku_osaarv
-5.59	verbide_teise_isiku_osaarv
-4.67	asesõnade_teise_isiku_osaarv
-3.88	asesõnade_kolmanda_isiku_osaarv
-2.24	korduvate_tähtede_arv
-1.97	nudpartitsiibiga_verbide_osakaal
-1.59	korduvate_sõnade_arv
-0.33	kaudse_kõneviisi_osakaal

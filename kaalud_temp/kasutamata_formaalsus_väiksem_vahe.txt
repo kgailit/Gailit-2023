@@ -1,8 +1,0 @@
-(1.4√x)	https://www.calculator.net/root-calculator.html
-3.48	kokkukleepunud_kirjavahemärkide_arv
-2.95	tajuverbide_osaarv
-2.72	läbinisti_suur
-2.21	korduvate_sõnade_arv
-1.66	korduvate_juppide_arv
-1.62	puuduva_suure_algustähega
-0.93	korduvate_tähtede_arv

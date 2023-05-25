@@ -1,9 +1,0 @@
-Tere!
-
-Kirjutan siia ühe lühikese katseteksti. :)
-
-Siin on lõiguke magistritööst.
-
-Et analüüsida, kas ja kuidas on mudeli edasi arendamise eesmärgil sisse viidud lisad ja muutused mõjutanud mudeli hinnanguid, võrdlen edasiarenduse hinnanguid algse, bakalaureusetöö (Gailit 2021) raames loodud mudeli hinnangutega. Teen seda kasutades hinnangukorpust, leides iga selle teksti jaoks kaks veamäära: bakalaureusetöö mudeli veamäära ja edasiarendatud mudeli veamäära. Veamäärad arvutan võttes mudeli hinnangu ja inimhinnangu vahe absoluutmäära, ehk vaatan, kui palju erineb mudeli hinnang inimeste hinnangust. Seejärel arvutan veamäärade keskmised, liites iga teksti veamäärad kokku ja jagan kõikide tekstide arvuga. Teen seda iga nelja hinnangu jaoks – bakalaureusetöö formaalsuse ja spontaansuse hinnangud ning edasiarendatud mudeli formaalsuse ja spontaansuse hinnangud. Saadud arvud väljendavad, kui palju erinevad keskmiselt mudelite hinnangud inimhinnangutest ning mida väiksem on veamäär, seda sarnasem on mudeli hinnang inimhinnangule ja seega seda parem on mudel vaadeldava andmestiku hindamiseks.
-
-Tänud!
