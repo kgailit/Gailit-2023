@@ -1,0 +1,4 @@
+cat baka/etnc19_web_2019.prevert | grep -P -v "^<" | grep -o -P ":[a-z_]{2,}:" | grep -v -P ":https?:" | sort | uniq -c | sort -nr | less
+
+Regex ise:
+:[a-z_]{2,}:

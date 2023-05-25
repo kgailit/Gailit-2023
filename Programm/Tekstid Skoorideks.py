@@ -1,49 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from estnltk import Text
+from estnltk import Span, Layer, Text
+from estnltk.converters import text_to_json, json_to_text
+from estnltk.taggers import VabamorfTagger
+
 import json
 import os
-from collections import defaultdict
+from collections import Counter, defaultdict
 import string 
 import nltk
-from collections import Counter
 import re
+import math
 from argparse import ArgumentParser
 
 
-#Tajuverbide keskmise arvutamine
-def tajuverbide_keskmine(oletamisega):
-    with open("Loendid\\tajuverbid\wordnet_tajuverbid.txt", "r", encoding = "utf8") as fr:
-        lines = fr.readlines()
-        tajuverbid = [verb.strip() for verb in lines]
-        
-    all_verbs = 0
-    only_tajuverbs = 0
-
-    for lemma, postag in zip(oletamisega.lemmas, oletamisega.postags):
-        if postag == "V":
-            all_verbs += 1
-            if lemma in tajuverbid:
-                only_tajuverbs += 1
-    # Kui tekstis ei leidu verbe, tagastab -1
-    if all_verbs == 0:
-        return -1
-    return only_tajuverbs / float(all_verbs)
-
-#Korduvate tähtede leidmine
-def leia_korduvad_tähed(oletamisega):
-    rx = re.compile(r'[^\d\s.:,;\(\)\[\]][.:,;\(\)\[\]][^\d\s.:,;\(\)\[\]]', re.IGNORECASE)
-    rxx = rx.findall(oletamisega.text)
-    return len(rxx)
-
-
-# Korduvate (mitte kokku kleepunud) sõnade leidmine
-def korduvate_sõnade_arv(oletamisega):
-    rx = re.compile(r"(\b\w+\b)(\s+\1)+", re.IGNORECASE)
-    rxx = rx.findall(oletamisega.text)
-
-    return len(rxx)
 
 #Kokkukleepunud kirjavahemärkide leidmine
 def leia_kokkukleepunud_kirjavahemärgid(oletamisega):
@@ -53,36 +24,9 @@ def leia_kokkukleepunud_kirjavahemärgid(oletamisega):
 
 # Leiab kolm korda korduvad vähemalt kahetähelised jupid
 def leia_korduvad_jupid(oletamisega):
-    rx = re.compile(r"([a-zA-ZüÜõÕäÄöÖšŠžŽ])\1{3,}|([a-zA-ZüÜõÕäÄöÖšŠžŽ]{2,})\1{2,}", re.IGNORECASE)
+    rx = re.compile(r"([a-zA-ZüÜõÕäÄöÖšŠžŽ])\1{3,}|([a-zA-ZüÜõÕäÄöÖšŠžŽ]{2,})\2{2,}", re.IGNORECASE)
     rxx = rx.findall(oletamisega.text)
     return len(rxx)
-
-#Tundmatude sõnade osakaalu leidmine
-def luhemate_tundmatute_osakaal(oletamiseta):
-    analuusita = 0
-    koik = 0
-
-    for word in oletamiseta.words:
-        if word["analysis"] == []:
-            # Vaatab, et ei oleks ainult punktuatsioon
-            if not all(char in string.punctuation for char in word["text"]):
-                # Kui esitäht on suur, on ilmselt pärisnimi
-                if word["text"][0] == word["text"][0].lower():
-                    if len(word["text"]) <= 10:
-                        analuusita += 1
-                        continue
-                # Kontrollib, et sõna ei oleks läbinisti suur
-                # Kui on, eeldab, et pole ikkagi tegu pärisnimega
-                elif len(word["text"]) > 1:
-                    if word["text"][1] != word["text"][1].lower():
-                        analuusita += 1
-                else:
-                    # Ka ühe tähemärgi pikkused tundmatud sõnad märgib analüüsita
-                    analuusita += 1
-    # Kui tekstis ei leidu sõnu, tagastab -1
-    if len(oletamiseta.words) == 0:
-        return -1
-    return analuusita / len(oletamiseta.words)
 
 #Esimese, teise ja kolmanda isiku osakaalu leidmine verbidest
 def verbide_isikute_osakaalud(oletamisega):
@@ -99,14 +43,14 @@ def verbide_isikute_osakaalud(oletamisega):
     arv_kolmas = 0
     
     # Vaatab iga sõna analüüsi
-    for analysis in oletamisega.analysis:
+    for analysis in oletamisega.morph_analysis:
         # Kui pole mitmese analüüsiga
-        if len(analysis) == 1:
-            analysis = analysis[0]
+        if len(analysis.partofspeech) == 1:
+            pos = analysis.partofspeech[0]
             # Kui tegu on verbiga
-            if analysis['partofspeech'] == "V":
+            if pos == "V":
                 #Jätab meelde sõnalõpu
-                form = analysis['form']
+                form = analysis.form[0]
                 # Vaatab, kas tunnus on loendis, ja suurendab vastavalt skoori
                 if form in esi_tunnused:
                     arv_koik += 1
@@ -137,14 +81,14 @@ def asesonade_isikute_osakaalud(oletamisega):
     arv_kolmas = 0
     
     # Vaatab iga sõna analüüsi
-    for analysis in oletamisega.analysis:
+    for analysis in oletamisega.morph_analysis:
         # Kui pole mitmese analüüsiga
-        if len(analysis) == 1:
-            analysis = analysis[0]
+        if len(analysis.partofspeech) == 1:
+            pos = analysis.partofspeech[0]
             # Kui tegu on asesõnaga
-            if analysis['partofspeech'] == "P":
+            if pos == "P":
                 #Jätab meelde asesõna
-                lemma = analysis['lemma']
+                lemma = analysis.lemma[0]
                 #Vaatab asesõna algvormi ja suurendab vastavat skoori
                 if lemma == 'mina':
                     arv_koik += 1
@@ -177,14 +121,14 @@ def passiivi_osakaal(oletamisega):
     arv_passiiv = 0
     
     # Vaatab iga sõna analüüsi
-    for analysis in oletamisega.analysis:
+    for analysis in oletamisega.morph_analysis:
         # Kui pole mitmese analüüsiga
-        if len(analysis) == 1:
-            analysis = analysis[0]
+        if len(analysis.partofspeech) == 1:
+            pos = analysis.partofspeech[0]
             # Kui tegu on verbiga
-            if analysis['partofspeech'] == "V":
+            if pos == "V":
                 #Jätab meelde sõnalõpu
-                form = analysis['form']
+                form = analysis.form[0]
                 # Vaatab, kas tunnus on loendis, ja suurendab vastavalt skoori
                 if form in tunnused:
                     arv_koik += 1
@@ -198,10 +142,10 @@ def passiivi_osakaal(oletamisega):
             # Vaatab kõiki analüüse
             # Kui vähemalt üks on passiivi analüüsiga
             # Märgib kogu leiduva vormi passiivseks
-            for analuus in analysis:
-                if analuus['partofspeech'] == "V":
+            for pos, form in zip(analysis.partofspeech, analysis.form):
+                if pos == "V":
                     # Vaatab, kas tunnus on loendis, ja märgib, et järelikult on passiiviga
-                    if analuus['form'] in tunnused:
+                    if form in tunnused:
                         leidub_passiivne = True
                         break
             
@@ -226,14 +170,14 @@ def nud_osakaal(oletamisega):
     arv_tunnus = 0
     
     # Vaatab iga sõna analüüsi
-    for analysis in oletamisega.analysis:
+    for analysis in oletamisega.morph_analysis:
         # Kui pole mitmese analüüsiga
-        if len(analysis) == 1:
-            analysis = analysis[0]
+        if len(analysis.partofspeech) == 1:
+            pos = analysis.partofspeech[0]
             # Kui tegu on verbiga
-            if analysis['partofspeech'] == "V":
+            if pos == "V":
                 #Jätab meelde sõnalõpu
-                form = analysis['form']
+                form = analysis.form[0]
                 # Vaatab, kas tunnus on loendis, ja suurendab vastavalt skoori
                 if form in tunnused:
                     arv_koik += 1
@@ -247,10 +191,10 @@ def nud_osakaal(oletamisega):
             # Vaatab kõiki analüüse
             # Kui vähemalt üks on passiivi analüüsiga
             # Märgib kogu leiduva vormi passiivseks
-            for analuus in analysis:
-                if analuus['partofspeech'] == "V":
+            for pos, form in zip(analysis.partofspeech, analysis.form):
+                if pos == "V":
                     # Vaatab, kas tunnus on loendis, ja märgib, et järelikult on passiiviga
-                    if analuus['form'] in tunnused:
+                    if form in tunnused:
                         leidub_tunnusega = True
                         break
             
@@ -275,14 +219,14 @@ def vat_osakaal(oletamisega):
     arv_tunnus = 0
     
     # Vaatab iga sõna analüüsi
-    for analysis in oletamisega.analysis:
+    for analysis in oletamisega.morph_analysis:
         # Kui pole mitmese analüüsiga
-        if len(analysis) == 1:
-            analysis = analysis[0]
+        if len(analysis.partofspeech) == 1:
+            pos = analysis.partofspeech[0]
             # Kui tegu on verbiga
-            if analysis['partofspeech'] == "V":
+            if pos == "V":
                 #Jätab meelde sõnalõpu
-                form = analysis['form']
+                form = analysis.form[0]
                 # Vaatab, kas tunnus on loendis, ja suurendab vastavalt skoori
                 if form in tunnused:
                     arv_koik += 1
@@ -296,10 +240,10 @@ def vat_osakaal(oletamisega):
             # Vaatab kõiki analüüse
             # Kui vähemalt üks on passiivi analüüsiga
             # Märgib kogu leiduva vormi passiivseks
-            for analuus in analysis:
-                if analuus['partofspeech'] == "V":
+            for pos, form in zip(analysis.partofspeech, analysis.form):
+                if pos == "V":
                     # Vaatab, kas tunnus on loendis, ja märgib, et järelikult on passiiviga
-                    if analuus['form'] in tunnused:
+                    if form in tunnused:
                         leidub_tunnusega = True
                         break
             
@@ -321,625 +265,710 @@ def vale_tähesuurus_osakaal(oletamisega):
     kõik_arv = 0
 
     # Vaatab iga lauset tekstis ükshaaval
-    for sentence in oletamisega.split_by_sentences():
+    for sentence in oletamisega.sentences:
         kõik_arv += 1
         # Vaatab lause esimest sõna eraldi
         # Kas esimene sõna on täis väiketähed või täis suurtähed
-        if sentence.words[0]['text'].islower():
+        if sentence.words[0].text.islower():
             vale_väike += 1
-        elif sentence.words[0]['text'].isupper():
+        elif sentence.words[0].text.isupper():
             # Vaatab, et ei oleks ühe tähe suurune
-            if len(sentence.words[0]['text']) > 1:
+            if len(sentence.words[0].text) > 1:
                 ainult_suur += 1
         # Vaatab iga ülejäänud sõna lauses
         for word in sentence.words[1:]:
             # Kui sõna on ühe tähe pikkune või ainult kirjavahemärgid, jätab selle sõna vahele
-            if len(word) == 1 or all(char in string.punctuation for char in word["text"]):
+            if len(word.text) == 1 or all(char in string.punctuation for char in word.text):
                 continue
             kõik_arv += 1
             # Vaatab iga sõna, kas on vaid suurtähed
-            if word["text"].isupper():
+            if word.text.isupper():
                 # Vaatab, et ei oleks lühendi analüüsiga
                 lyhend = False
-                for analysis in word['analysis']:
-                    if 'Y' == analysis['partofspeech']:
-                        lyhend = True
-                        break
-                if not lyhend:
+                if 'Y' not in word.morph_analysis.partofspeech:
                     ainult_suur += 1
+                    
     # Kui tekstis ei sõnu, tagastab -1
     if kõik_arv == 0:
         return -1, -1
     return vale_väike/kõik_arv, ainult_suur/kõik_arv
 
-def kirjavigadega_osaarv(oletamisega):
-    kirjavigadega = 0
-    # Vaatleb EstNLTK-sse sisse ehitatud kirjavigade mooduli abil kirjavigu
-    for spellcheck, oletamisega_analysis in list(zip(oletamisega.spellcheck_results, oletamisega.analysis)):
-        # Kui tegu on kirjaveaga sõnaga
-        if spellcheck['spelling'] == False:
-            nimi = False
-            # Vaatab, et tegu poleks pärisnimega
-            for analysis in oletamisega_analysis:
-                if analysis['partofspeech'] == 'H':
-                    nimi = True
-            if not nimi:
-                # Kui pole nimi, määrab kirjaveaks
-                kirjavigadega += 1
-    # Tagastab kirjavigadega sõnade protsendi
-        # Kui tekstis ei ole sõnu, tagastab -1
-    if len(oletamisega.analysis) == 0:
-        return -1, -1
-    return kirjavigadega / len(oletamisega.analysis)
+def sõnaloendi_osaarv(oletamisega):
+    kokku = len(oletamisega.words)
+    loendis = 0
+    
+    for word in oletamisega.words:
+        sona = word.text.lower()
+        lemmad = word.lemma
+        if sona in sõnaloend:
+            loendis += 1
+        else:
+            for lemma in lemmad:
+                if lemma.lower() in sõnaloend:
+                    loendis += 1
+                    break
+        
+    return loendis/kokku
+
+def teisenda_vahemikku(algne, maksimum, miinimum):
+    uus = ((algne - miinimum) / (maksimum - miinimum))
+    
+    if uus > 1:
+        return 1.0
+    elif uus < 0:
+        return 0.0
+    else:
+        return uus
 
 def formaalsus(andmed):
+    
     skoor = 0
+    skoor_temp = 0
     
     tunnus_TTR = andmed["TTR"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_TTR == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
     # <= 9.1%
     elif tunnus_TTR <= 0.450412:
-        skoor -= 5
+        skoor_temp -= 5
     # <= 18.2%
     elif tunnus_TTR <= 0.520466:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 27.3%
     elif tunnus_TTR <= 0.571429:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 36.3%
     elif tunnus_TTR <= 0.611948:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 45.4%
     elif tunnus_TTR <= 0.647191:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 54.5%
     elif tunnus_TTR <= 0.679739:
-        skoor += 0
+        skoor_temp += 0
     # <= 63.6%
     elif tunnus_TTR <= 0.709795:
-        skoor += 1
+        skoor_temp += 1
     # <= 72.7%
     elif tunnus_TTR <= 0.740260:
-        skoor += 2
+        skoor_temp += 2
     # <= 81.8%
     elif tunnus_TTR <= 0.772973:
-        skoor += 3
+        skoor_temp += 3
     # <= 90.9%
     elif tunnus_TTR <= 0.813333:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
     
-    skoor_isik = 0
+    kaal = 8.80
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_a1i = andmed["asesõnade_esimese_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_a1i == -1:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_a1i <= 0.000000:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # <= 33.3%
     elif tunnus_a1i <= 0.242424:
-        skoor_isik -= 1
+        skoor_temp -= 1
     # <= 50%
     elif tunnus_a1i <= 0.500000:
-        skoor_isik -= 2
+        skoor_temp -= 2
     # <= 66.7%
     elif tunnus_a1i <= 0.666667:
-        skoor_isik -= 3
+        skoor_temp -= 3
     # <= 83.3%
     elif tunnus_a1i <= 0.894737:
-        skoor_isik -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik -= 5
+        skoor_temp -= 5
+    
+    kaal = 7.97
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_a2i = andmed["asesõnade_teise_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_a2i == -1:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 50%
     elif tunnus_a2i == 0.000000:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # <= 66.7%
     elif tunnus_a2i <= 0.200000:
-        skoor_isik -= 3
+        skoor_temp -= 3
     # <= 83.3%
     elif tunnus_a2i <= 0.500000:
-        skoor_isik -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik -= 5
+        skoor_temp -= 5
+    
+    kaal = 4.19
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_v1i = andmed["verbide_esimese_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_v1i == -1:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 33.3%
     elif tunnus_v1i == 0.000000:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # <= 50%
     elif tunnus_v1i <= 0.105263:
-        skoor_isik -= 2
+        skoor_temp -= 2
     # <= 66.7%
     elif tunnus_v1i <= 0.222222:
-        skoor_isik -= 3
+        skoor_temp -= 3
     # <= 83.3%
     elif tunnus_v1i <= 0.375000:
-        skoor_isik -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik -= 5
+        skoor_temp -= 5
+    
+    kaal = 12.82
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_v2i = andmed["verbide_teise_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_v2i == -1:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_v2i <= 0.000000:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # <= 33.3%
     elif tunnus_v2i <= 0.058824:
-        skoor_isik -= 1
+        skoor_temp -= 1
     # <= 50%
     elif tunnus_v2i <= 0.125000:
-        skoor_isik -= 2
+        skoor_temp -= 2
     # <= 66.7%
     elif tunnus_v2i <= 0.200000:
-        skoor_isik -= 3
+        skoor_temp -= 3
     # <= 83.3%
     elif tunnus_v2i <= 0.333333:
-        skoor_isik -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik -= 5
+        skoor_temp -= 5
     
-    # Vähendan isikute mõju skoorile, kuna need on omavahel seotud
-    skoor += (skoor_isik / 4)
-    skoor_isik = 0
+    kaal = 5.48
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_a3i = andmed["asesõnade_kolmanda_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_a3i == -1:
-        skoor_isik += 0
+        skoor_temp += 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 33.3%
     elif tunnus_a3i == 0.000000:
-        skoor_isik += 0
+        skoor_temp += 0
     # <= 50%
     elif tunnus_a3i <= 0.200000:
-        skoor_isik += 2
+        skoor_temp += 2
     # <= 66.7%
     elif tunnus_a3i <= 0.416667:
-        skoor_isik += 3
+        skoor_temp += 3
     # <= 83.3%
     elif tunnus_a3i <= 0.800000:
-        skoor_isik += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik += 5
+        skoor_temp += 5
+    
+    kaal = 2.44
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_v3i = andmed["verbide_kolmanda_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_v3i == -1:
-        skoor_isik += 0
+        skoor_temp += 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_v3i <= 0.400000:
-        skoor_isik += 0
+        skoor_temp += 0
     # <= 33.3%
     elif tunnus_v3i <= 0.536585:
-        skoor_isik += 1
+        skoor_temp += 1
     # <= 50%
     elif tunnus_v3i <= 0.666667:
-        skoor_isik += 2
+        skoor_temp += 2
     # <= 66.7%
     elif tunnus_v3i <= 0.800000:
-        skoor_isik += 3
+        skoor_temp += 3
     # <= 83.3%
     elif tunnus_v3i <= 0.945946:
-        skoor_isik += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor_isik += 5
+        skoor_temp += 5
     
-    # Vähendan isikute mõju skoorile, kuna need on omavahel seotud
-    skoor += (skoor_isik / 2)
+    kaal = 12.72
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_emotikonide_arv = andmed["emotikonide_arv"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_emotikonide_arv > 0.0000:
-        skoor -= 5
+        skoor_temp -= 5
+    
+    kaal = 9.64
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_kaudse_kõneviisi_osakaal = andmed["kaudse_kõneviisi_osakaal"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_kaudse_kõneviisi_osakaal > 0.0000:
-        skoor += 5
+        skoor_temp += 5
+    
+    kaal = 1.96
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_nud = andmed["nud-partitsiibiga_verbide_osakaal"]
         # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_nud == -1:
-        skoor_isik -= 0
+        skoor_temp -= 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_nud == 0.000000:
-        skoor -= 0
+        skoor_temp -= 0
     # <= 33.3%
     elif tunnus_nud <= 0.011429:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 50%
     elif tunnus_nud <= 0.031250:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 66.7%
     elif tunnus_nud <= 0.049180:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 83.3%
     elif tunnus_nud <= 0.073529:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor -= 5
+        skoor_temp -= 5
+    
+    kaal = 4.03
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_passiiv = andmed["passiivi_osakaal"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_passiiv == -1:
-        skoor_isik += 0
+        skoor_temp += 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_passiiv <= 0.019608:
-        skoor += 0
+        skoor_temp += 0
     # <= 33.3%
     elif tunnus_passiiv <= 0.043011:
-        skoor += 1
+        skoor_temp += 1
     # <= 50%
     elif tunnus_passiiv <= 0.065246:
-        skoor += 2
+        skoor_temp += 2
     # <= 66.7%
     elif tunnus_passiiv <= 0.095808:
-        skoor += 3
+        skoor_temp += 3
     # <= 83.3%
     elif tunnus_passiiv <= 0.148138:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
+    
+    kaal = 9.83
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_käändsõnad = andmed["käändsõnade_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_käändsõnad == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
     # <= 9.1%
     elif tunnus_käändsõnad <= 0.333333:
-        skoor -= 5
+        skoor_temp -= 5
     # <= 18.2%
     elif tunnus_käändsõnad <= 0.378481:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 27.3%
     elif tunnus_käändsõnad <= 0.415044:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 36.4%
     elif tunnus_käändsõnad <= 0.447115:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 45.5%
     elif tunnus_käändsõnad <= 0.475958:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 54.5%
     elif tunnus_käändsõnad <= 0.502941:
-        skoor += 0
+        skoor_temp += 0
     # <= 63.6%
     elif tunnus_käändsõnad <= 0.527778:
-        skoor += 1
+        skoor_temp += 1
     # <= 72.7%
     elif tunnus_käändsõnad <= 0.552941:
-        skoor += 2
+        skoor_temp += 2
     # <= 81.8%
     elif tunnus_käändsõnad <= 0.581395:
-        skoor += 3
+        skoor_temp += 3
     # <= 90.9%
     elif tunnus_käändsõnad <= 0.619570:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
+    
+    kaal = 20.75
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
     
     tunnus_lemmapikkus = andmed["lemmapikkuse_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_lemmapikkus == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
     # <= 9.1%
     elif tunnus_lemmapikkus <= 4.401786:
-        skoor -= 5
+        skoor_temp -= 5
     # <= 18.2%
     elif tunnus_lemmapikkus <= 4.543703:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 27.3%
     elif tunnus_lemmapikkus <= 4.657800:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 36.4%
     elif tunnus_lemmapikkus <= 4.760417:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 45.5%
     elif tunnus_lemmapikkus <= 4.854926:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 54.5%
     elif tunnus_lemmapikkus <= 4.949524:
-        skoor += 0
+        skoor_temp += 0
     # <= 63.6%
     elif tunnus_lemmapikkus <= 5.045977:
-        skoor += 1
+        skoor_temp += 1
     # <= 72.7%
     elif tunnus_lemmapikkus <= 5.153620:
-        skoor += 2
+        skoor_temp += 2
     # <= 81.8%
     elif tunnus_lemmapikkus <= 5.282090:
-        skoor += 3
+        skoor_temp += 3
     # <= 90.9%
     elif tunnus_lemmapikkus <= 5.468645:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
     
-    #Paneb skoori vahemikku -1 ja 1
-    if skoor < 0:
-        return skoor / (5+5+5+5+5 + (20/4))
+    kaal = 18.50
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
+    
+    tunnus_leksikon = andmed["leksikonides_esinevade_osaarv"]
+    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
+    if tunnus_leksikon == -1:
+        skoor_temp -= 0
+    # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
+    # <= 50%
+    elif tunnus_leksikon <= 0:
+        skoor_temp -= 0
+    # <= 66.7%
+    elif tunnus_leksikon <= 0.001346:
+        skoor_temp -= 3
+    # <= 83.3%
+    elif tunnus_leksikon <= 0.005435:
+        skoor_temp -= 4
+    # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        return skoor / (5+5+5+5+5 + (10/2))
+        skoor_temp -= 5
+    
+    kaal = 6.30
+    skoor += skoor_temp * kaal
+    skoor_temp = 0
+    
+    # Väljastab ühtlustatud skoori
+    return teisenda_vahemikku(skoor, 366, -448)
 
 def spontaansus(andmed):
+    
     skoor = 0
+    skoor_temp = 0
     
     tunnus_TTR = andmed["TTR"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_TTR == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
     # <= 9.1%
     elif tunnus_TTR <= 0.450412:
-        skoor += 5
+        skoor_temp += 5
     # <= 18.2%
     elif tunnus_TTR <= 0.520466:
-        skoor += 4
+        skoor_temp += 4
     # <= 27.3%
     elif tunnus_TTR <= 0.571429:
-        skoor += 3
+        skoor_temp += 3
     # <= 36.3%
     elif tunnus_TTR <= 0.611948:
-        skoor += 2
+        skoor_temp += 2
     # <= 45.4%
     elif tunnus_TTR <= 0.647191:
-        skoor += 1
+        skoor_temp += 1
     # <= 54.5%
     elif tunnus_TTR <= 0.679739:
-        skoor += 0
+        skoor_temp += 0
     # <= 63.6%
     elif tunnus_TTR <= 0.709795:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 72.7%
     elif tunnus_TTR <= 0.740260:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 81.8%
     elif tunnus_TTR <= 0.772973:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 90.9%
     elif tunnus_TTR <= 0.813333:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor -= 5
+        skoor_temp -= 5
+    
+    kaal = 9.46
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_emotikonide_arv = andmed["emotikonide_arv"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_emotikonide_arv > 0.0000:
-        skoor += 5
+        skoor_temp += 5
     
-    skoor_kirjavead = 0
-    
-    tunnus_kirjavigadega = andmed["kirjavigadega_osaarv"]
-    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
-    if tunnus_kirjavigadega == -1:
-        skoor += 0
-    # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
-    # Ei käsitle kirjavigasid binaarsetena, kuna neid võib olla vale-positiivseid (nt pärisnimesid)
-    # <= 16.7%
-    elif tunnus_kirjavigadega == 0.000000:
-        skoor_kirjavead += 0
-    # <= 33.3%
-    elif tunnus_kirjavigadega <= 0.007508:
-        skoor_kirjavead += 1
-    # <= 50%
-    elif tunnus_kirjavigadega <= 0.012698:
-        skoor_kirjavead += 2
-    # <= 66.7%
-    elif tunnus_kirjavigadega <= 0.020690:
-        skoor_kirjavead += 3
-    # <= 83.3%
-    elif tunnus_kirjavigadega <= 0.035088:
-        skoor_kirjavead += 4
-    # <= 100% (ka suuremad, kui korpuses leiduvad)
-    else:
-        skoor_kirjavead += 5
-        
-    tunnus_luhemate_tundmatute_osakaal = andmed["luhemate_tundmatute_osakaal"]
-    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
-    if tunnus_kirjavigadega == -1:
-        skoor += 0
-    # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
-    # Ei käsitle kirjavigasid binaarsetena, kuna neid võib olla vale-positiivseid (nt pärisnimesid)
-    # <= 16.7%
-    elif tunnus_luhemate_tundmatute_osakaal == 0.000000:
-        skoor_kirjavead += 0
-    # <= 33.3%
-    elif tunnus_luhemate_tundmatute_osakaal <= 0.002433:
-        skoor_kirjavead += 1
-    # <= 50%
-    elif tunnus_luhemate_tundmatute_osakaal <= 0.006711:
-        skoor_kirjavead += 2
-    # <= 66.7%
-    elif tunnus_luhemate_tundmatute_osakaal <= 0.011628:
-        skoor_kirjavead += 3
-    # <= 83.3%
-    elif tunnus_luhemate_tundmatute_osakaal <= 0.02170:
-        skoor_kirjavead += 4
-    # <= 100% (ka suuremad, kui korpuses leiduvad)
-    else:
-        skoor_kirjavead += 5
-    
-    skoor += (skoor_kirjavead / 2)
+    kaal = 11.15
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_lemmapikkus = andmed["lemmapikkuse_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_lemmapikkus == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
     # <= 9.1%
     elif tunnus_lemmapikkus <= 4.401786:
-        skoor += 5
+        skoor_temp += 5
     # <= 18.2%
     elif tunnus_lemmapikkus <= 4.543703:
-        skoor += 4
+        skoor_temp += 4
     # <= 27.3%
     elif tunnus_lemmapikkus <= 4.657800:
-        skoor += 3
+        skoor_temp += 3
     # <= 36.4%
     elif tunnus_lemmapikkus <= 4.760417:
-        skoor += 2
+        skoor_temp += 2
     # <= 45.5%
     elif tunnus_lemmapikkus <= 4.854926:
-        skoor += 1
+        skoor_temp += 1
     # <= 54.5%
     elif tunnus_lemmapikkus <= 4.949524:
-        skoor += 0
+        skoor_temp += 0
     # <= 63.6%
     elif tunnus_lemmapikkus <= 5.045977:
-        skoor -= 1
+        skoor_temp -= 1
     # <= 72.7%
     elif tunnus_lemmapikkus <= 5.153620:
-        skoor -= 2
+        skoor_temp -= 2
     # <= 81.8%
     elif tunnus_lemmapikkus <= 5.282090:
-        skoor -= 3
+        skoor_temp -= 3
     # <= 90.9%
     elif tunnus_lemmapikkus <= 5.468645:
-        skoor -= 4
+        skoor_temp -= 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor -= 5
-    
-    tunnus_tajuverbide_osaarv = andmed["tajuverbide_osaarv"]
-    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
-    if tunnus_tajuverbide_osaarv == -1:
-        skoor += 0
-    # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
-    # <= 16.7%
-    elif tunnus_tajuverbide_osaarv <= 0.044118:
-        skoor += 0
-    # <= 33.3%
-    elif tunnus_tajuverbide_osaarv <= 0.085714:
-        skoor += 1
-    # <= 50%
-    elif tunnus_tajuverbide_osaarv <= 0.117647:
-        skoor += 2
-    # <= 66.7%
-    elif tunnus_tajuverbide_osaarv <= 0.150000:
-        skoor += 3
-    # <= 83.3%
-    elif tunnus_tajuverbide_osaarv <= 0.192652:
-        skoor += 4
-    # <= 100% (ka suuremad, kui korpuses leiduvad)
-    else:
-        skoor += 5
+        skoor_temp -= 5
+        
+    kaal = 14.95
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_kokkukleepunud_kirjavahemärkide_arv = andmed["kokkukleepunud_kirjavahemärkide_arv"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_kokkukleepunud_kirjavahemärkide_arv > 0.0000:
-        skoor += 5
+        skoor_temp += 5
+        
+    kaal = 11.40
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_korduvate_juppide_arv = andmed["korduvate_juppide_arv"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_korduvate_juppide_arv > 0.0000:
-        skoor += 5
+        skoor_temp += 5
+        
+    kaal = 3.14
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_läbinisti_suur = andmed["läbinisti_suur"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_läbinisti_suur == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # Ei käsitle kirjavigasid binaarsetena, kuna neid võib olla vale-positiivseid (nt pärisnimesid)
     # <= 16.7%
     elif tunnus_läbinisti_suur == 0.000000:
-        skoor += 0
+        skoor_temp += 0
     # <= 66.7%
     elif tunnus_läbinisti_suur <= 0.002037:
-        skoor += 3
+        skoor_temp += 3
     # <= 83.3%
     elif tunnus_läbinisti_suur <= 0.009217:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
+        
+    kaal = 6.11
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
     tunnus_puuduva_suure_algustähega = andmed["puuduva_suure_algustähega"]
-    # Binaarse tunnuse (on või ei ole) skoor on vastavalt kas 5 või 0
+    # Binaarse tunnuse (on või ei ole) skoor_temp on vastavalt kas 5 või 0
     if tunnus_puuduva_suure_algustähega > 0.0000:
-        skoor += 5
+        skoor_temp += 5
         
+    kaal = 16.53
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
+    
     tunnus_a1i = andmed["asesõnade_esimese_isiku_osaarv"]
     # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
     if tunnus_a1i == -1:
-        skoor += 0
+        skoor_temp += 0
     # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
     # <= 16.7%
     elif tunnus_a1i <= 0.000000:
-        skoor += 0
+        skoor_temp += 0
     # <= 33.3%
     elif tunnus_a1i <= 0.242424:
-        skoor += 1
+        skoor_temp += 1
     # <= 50%
     elif tunnus_a1i <= 0.500000:
-        skoor += 2
+        skoor_temp += 2
     # <= 66.7%
     elif tunnus_a1i <= 0.666667:
-        skoor += 3
+        skoor_temp += 3
     # <= 83.3%
     elif tunnus_a1i <= 0.894737:
-        skoor += 4
+        skoor_temp += 4
     # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        skoor += 5
+        skoor_temp += 5
+        
+    kaal = 8.29
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
     
-    #Paneb skoori vahemikku -1 ja 1, kuid 0 jääb 0-ks
-    if skoor < 0:
-        return skoor / (5 + 5)
+    tunnus_käändsõnad = andmed["käändsõnade_osaarv"]
+    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
+    if tunnus_käändsõnad == -1:
+        skoor_temp += 0
+    # Jagasin polaarse tunnuse korpuse alusel 11-ks võrdseks osaks, et hinnata
+    # <= 9.1%
+    elif tunnus_käändsõnad <= 0.333333:
+        skoor_temp += 5
+    # <= 18.2%
+    elif tunnus_käändsõnad <= 0.378481:
+        skoor_temp += 4
+    # <= 27.3%
+    elif tunnus_käändsõnad <= 0.415044:
+        skoor_temp += 3
+    # <= 36.4%
+    elif tunnus_käändsõnad <= 0.447115:
+        skoor_temp += 2
+    # <= 45.5%
+    elif tunnus_käändsõnad <= 0.475958:
+        skoor_temp += 1
+    # <= 54.5%
+    elif tunnus_käändsõnad <= 0.502941:
+        skoor_temp += 0
+    # <= 63.6%
+    elif tunnus_käändsõnad <= 0.527778:
+        skoor_temp -= 1
+    # <= 72.7%
+    elif tunnus_käändsõnad <= 0.552941:
+        skoor_temp -= 2
+    # <= 81.8%
+    elif tunnus_käändsõnad <= 0.581395:
+        skoor_temp -= 3
+    # <= 90.9%
+    elif tunnus_käändsõnad <= 0.619570:
+        skoor_temp -= 4
+    # <= 100% (ka suuremad, kui korpuses leiduvad)
     else:
-        return skoor / (5 + 5 + (10/2) + 5 + 5 + 5 + 5 + 5 + 5 + 5)
-
+        skoor_temp -= 5
+        
+    kaal = 23.01
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
+    
+    tunnus_leksikon = andmed["leksikonides_esinevade_osaarv"]
+    # Kui tunnust tekstis ei leidunud, ei mõjuta see skoori
+    if tunnus_leksikon == -1:
+        skoor_temp += 0
+    # Jagasin mitte-polaarse tunnuse korpuse alusel 6-ks võrdseks osaks, et hinnata
+    # <= 50%
+    elif tunnus_leksikon <= 0:
+        skoor_temp += 0
+    # <= 66.7%
+    elif tunnus_leksikon <= 0.001346:
+        skoor_temp += 3
+    # <= 83.3%
+    elif tunnus_leksikon <= 0.005435:
+        skoor_temp += 4
+    # <= 100% (ka suuremad, kui korpuses leiduvad)
+    else:
+        skoor_temp += 5
+        
+    kaal = 9.03
+    skoor += skoor_temp * round(kaal ** (1/1.4), 2)
+    skoor_temp = 0
+    
+    # Väljastab ühtlustatud skoori
+    return teisenda_vahemikku(skoor, 268, -103)
 
 # Jooksutamisele
 
 if __name__ == '__main__':
     # Parse arguments
     parser = ArgumentParser()
-    parser.add_argument("--hinda", dest="hinda",
+    parser.add_argument("--sisend", dest="hinda",
                         help="Hinnatav fail või kaust", required=True)
-    parser.add_argument("--kaust", dest="kaust",
+    parser.add_argument("--tulemkaust", dest="kaust",
                         help="Kaust, kuhu skoorid väljastatakse", default="Skoorid/")
     
     args = parser.parse_args()
     
     hinda = args.hinda
-    kaust = args.kaust
+    kaust = args.kaust.strip() + "/"
     
     failinimed = []
     
@@ -952,6 +981,12 @@ if __name__ == '__main__':
     else:
         os.makedirs(os.path.dirname(kaust), exist_ok=True)
         failinimed = [hinda]
+    
+    #Loeb sisse leksikoni
+    sõnaloend = None
+
+    with open("Loendid/Leksikonid/koos.txt", "r", encoding="UTF-8") as fr:
+        sõnaloend = [i.strip().lower() for i in fr.readlines()]
     
     # Loeb emotikonid sisse
     emotikonid = []
@@ -972,6 +1007,8 @@ if __name__ == '__main__':
             emotikonid_probleemsed.append(line.strip().lower())
     # Eemaldab korduvad emotikonid 
     emotikonid_probleemsed = list(set(emotikonid_probleemsed))
+    
+    oletamisega_morph_tagger = VabamorfTagger(guess=True, propername=True, disambiguate=True)
     
     # Vaatab kõiki hinnatavaid faile
     for filename in failinimed:
@@ -1024,92 +1061,75 @@ if __name__ == '__main__':
 
             # Teeb morfoloogilise analüüsi nii tundmatude analüüsi oletamisega ja oletamiseta
             oletamisega = Text(pure)
-            oletamiseta = Text(pure, disambiguate=False, guess=False, propername=False)
-
-            oletamisega.tag_analysis()
-            oletamiseta.tag_analysis()
+            
+            oletamisega.tag_layer(['words', 'sentences', 'compound_tokens'])
+        
+            oletamisega_morph_tagger.tag( oletamisega )
 
             # Loeb kokku lemmade arvud ja käänduvate lemmade arvud
             kõikide_lemmade_arv = 0
             ainult_käänduvate_lemmade_arv = 0
 
-            for lemma, postag in zip(oletamisega.lemmas, oletamisega.postags):
+            for lemma, postag in zip(oletamisega.lemma, oletamisega.partofspeech):
                 kõikide_lemmade_arv += 1
                 # Kui tegu on käänduva lemmaga
-                if postag in ["A", "C", "G", "H", "K", "N", "O", "S", "U", "Y"]:
+                # Vaatab ainult esimest sõnaliiki (et välistada käändelsi verbivorme omadussõnade hulgast)
+                if postag[0] in ["A", "C", "G", "H", "K", "N", "O", "P", "S", "U", "Y"]:
                     ainult_käänduvate_lemmade_arv += 1
-
-            # Loeb kokku lemmad lahutades liitsõnad osasõnadeks
             lemmas_subwords = []
             for tokens in oletamisega.root_tokens:
-                # Kui tegu on sõnega ja mitte loendiga
-                if isinstance(tokens[0], str):
-                    for token in tokens:
-                        # Kui kõik tähemärgid ei ole punktuatsioonimärgid
-                        if not all(char in string.punctuation for char in token):
-                            lemmas_subwords.append(token)
-                # Kui tegu on loendiga, võtab esimese tõlgenduse
-                else:
-                    for token in tokens[0]:
-                        # Kui kõik tähemärgid ei ole punktuatsioonimärgid
-                        if not all(char in string.punctuation for char in token):
-                            lemmas_subwords.append(token)
+                lemmad = None
+                # Võtab lemmade loendist esimese tõlgenduse:
+                lemmad = tokens[0]
+                # Vaatab iga lemmat tekstis
+                for lemma in lemmad:
+                    # Kui kõik tähemärgid ei ole punktuatsioonimärgid
+                    if not all(char in string.punctuation for char in lemma):
+                        lemmas_subwords.append(lemma)
 
             # Võtab sõnade algvormid, ignoreerib kirjavahemärke
-            lemmad = [lemma.split("|")[0] for lemma in oletamisega.lemmas if not all(char in string.punctuation for char in lemma)]
+            lemmad = [lemma[0] for lemma in oletamisega.lemma  if not all(char in string.punctuation for char in lemma)]
 
             # Arvutab TTR-i, keskmise lemma osasõna pikkuse ja käänduvate lemmade osaarvu
             andmed['TTR'] = len(Counter(lemmad))/len(lemmad)
             andmed['lemmapikkuse_osaarv'] = sum(map(len, lemmas_subwords))/len(lemmas_subwords)
             andmed['käändsõnade_osaarv'] = ainult_käänduvate_lemmade_arv/kõikide_lemmade_arv
             
-            # Arvutab tajuverbide osaarvu kõikidest verbidest ja jätab meelde
-            andmed['tajuverbide_osaarv'] = tajuverbide_keskmine(oletamisega)
-            
-            # Arvutab lühikeste tundmatu morfanalüüsi saanud sõnade osaarvu
-            andmed['luhemate_tundmatute_osakaal'] = luhemate_tundmatute_osakaal(oletamiseta)
-            
-            # Loendab kokku vähemalt kolm korda korduvad tähed sõna sees
-            andmed['korduvate_tähtede_arv'] = leia_korduvad_tähed(oletamisega)
             
             # Loendab kokku sõnadesse kokku kleepunud kirjavahemärkide arvu
             andmed['kokkukleepunud_kirjavahemärkide_arv'] = leia_kokkukleepunud_kirjavahemärgid(oletamisega)
-            
+
             # Leiab verbide isikute protsendid (kui palju on 1., 2. ja 3. isik)
             verbide_isikute_protsendid = verbide_isikute_osakaalud(oletamisega)
             andmed['verbide_esimese_isiku_osaarv'] = verbide_isikute_protsendid[0]
             andmed['verbide_teise_isiku_osaarv'] = verbide_isikute_protsendid[1]
             andmed['verbide_kolmanda_isiku_osaarv'] = verbide_isikute_protsendid[2]
-            
+
             # Leiab asesõnade isikute protsendid (kui palju on 1., 2. ja 3. isik)
             asesonade_isikute_protsendid = asesonade_isikute_osakaalud(oletamisega)
             andmed['asesõnade_esimese_isiku_osaarv'] = asesonade_isikute_protsendid[0]
             andmed['asesõnade_teise_isiku_osaarv'] = asesonade_isikute_protsendid[1]
             andmed['asesõnade_kolmanda_isiku_osaarv'] = asesonade_isikute_protsendid[2]
-            
+
             # Leiab passiivi osakaalu ja jätab meelde
             andmed['passiivi_osakaal'] = passiivi_osakaal(oletamisega)
-            
+
             # Leiab nud-partitsiibi osakaalu ja jätab meelde
             andmed['nud-partitsiibiga_verbide_osakaal'] = nud_osakaal(oletamisega)
-            
+
             # Leiab kaudse kõneviisi osakaalu ja jätab meelde
             andmed['kaudse_kõneviisi_osakaal'] = vat_osakaal(oletamisega)
-            
+
             # Leiab, kui palju tekstist on väikese algustähega või läbinisti suur
             valed_suurused = vale_tähesuurus_osakaal(oletamisega)
             andmed['puuduva_suure_algustähega'] = valed_suurused[0]
             andmed['läbinisti_suur'] = valed_suurused[1]
-            
-            # Leiab korduvate sõnade arvu
-            andmed['korduvate_sõnade_arv'] = korduvate_sõnade_arv(oletamisega)
-            
+
             # Leiab korduvate kokkukleepunud "juppide" arvu
             # nt silbid aga ka muud arbitraarsed kordused üle 2 tähe ja 3 korduse
             andmed['korduvate_juppide_arv'] = leia_korduvad_jupid(oletamisega)
-            
-            # Leiab kirjavigadega sõnade (mitte nimede) osaarvu
-            andmed['kirjavigadega_osaarv'] = kirjavigadega_osaarv(oletamisega)
+
+            andmed['leksikonides_esinevade_osaarv'] = sõnaloendi_osaarv(oletamisega)
             
             # Teisendab tunnused skoorideks
             skoorid = dict()
