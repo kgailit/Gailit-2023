@@ -13,7 +13,7 @@ GitHubi kaust *Loendid* sisaldab programmi koostamisel kasutatud loendeid. Emoti
 GitHubi kaust *Notebooks* sisaldab programmi koostamisel loodud Jupyter Notebook faile, mida kasutasin süsteemi koostamisel ja mis ei ole vajalikud skripti jooksutamiseks.
 
 Eelnõuded:
-`
+
 EstNLTK 1.7.2
 
 Autor: Karl Gustav Gailit
